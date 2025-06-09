@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackBite - Mobile Food Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f0f0;
+            overflow: hidden;
+        }
+
+        /* Mobile Container */
+        .mobile-container {
+            width: 100%;
+            max-width: 428px;
+            margin: 0 auto;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Screen Base */
+        .screen {
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .bg-gray {
+            background-color: #f9fafb;
+        }
+
+        .bg-gradient-orange {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 50%, #eab308 100%);
+        }
+
+        /* Background Decorations */
+        .bg-decoration {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+
+        .bg-decoration-1 {
+            top: 0; left: 0; width: 12rem; height: 12rem;
+            background: #fde047; transform: translate(-4rem, -4rem);
+        }
+
+        .bg-decoration-2 {
+            top: 8rem; right: 0; width: 8rem; height: 8rem;
+            background: #fbbf24; opacity: 0.6; transform: translate(2rem, 0);
+        }
+
+        .bg-decoration-3 {
+            bottom: 0; left: 0; width: 16rem; height: 16rem;
+            background: #fb923c; opacity: 0.7; transform: translate(-8rem, 8rem);
+        }
+
+        /* Pizza Icon */
+        .pizza-icon {
+            position: absolute;
+            top: 33.33%;
+            left: 2rem;
+            width: 4rem;
+            height: 4rem;
+        }
+
+        .pizza-slice {
+            width: 0; height: 0;
+            border-left: 2rem solid transparent;
+            border-right: 2rem solid transparent;
+            border-bottom: 1.75rem solid #fbbf24;
+            position: relative;
+        }
+
+        .pizza-slice-small {
+            border-left: 1.5rem solid transparent;
+            border-right: 1.5rem solid transparent;
+            border-bottom: 1.3125rem solid #f97316;
+        }
+
+        .pizza-topping {
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .pizza-topping-1 {
+            top: 1rem; left: 1rem; width: 0.5rem; height: 0.5rem; background: #ef4444;
+        }
+
+        .pizza-topping-2 {
+            top: 1.5rem; left: 1.5rem; width: 0.375rem; height: 0.375rem; background: #22c55e;
+        }
+
+        .pizza-topping-3 {
+            top: 0.75rem; left: 1.75rem; width: 0.25rem; height: 0.25rem; background: #ef4444;
+        }
+
+        .pizza-topping-small-1 {
+            top: 0.75rem; left: 0.75rem; width: 0.375rem; height: 0.375rem; background: #ef4444;
+        }
+
+        .pizza-topping-small-2 {
+            top: 1rem; left: 1rem; width: 0.25rem; height: 0.25rem; background: #22c55e;
+        }
+
+        /* App Title */
+        .app-title {
+            position: absolute;
+            bottom: 50%;
+            left: 2rem;
+        }
+
+        .app-title h1 {
+            font-size: 2.25rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* Loading Dots */
+        .loading-dots {
+            position: absolute;
+            bottom: 4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            background: white;
+            border-radius: 50%;
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn-auth {
+            width: 12rem;
+            height: 3rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-auth-primary {
+            background: white;
+            color: #f97316;
+        }
+
+        .btn-auth-secondary {
+            background: #f97316;
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            background: #f97316;
+            padding: 1.5rem 1rem;
+            border-radius: 0 0 1.5rem 1.5rem;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .screen-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 3rem;
+            background: white;
+            border: none;
+            border-radius: 1.5rem;
+            padding: 0 1rem 0 3rem;
+            font-size: 1rem;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+        }
+
+        .welcome-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 3rem;
+            height: 3rem;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-avatar-inner {
+            width: 2rem;
+            height: 2rem;
+            background: #f97316;
+            border-radius: 50%;
+        }
+
+        .user-text {
+            color: white;
+        }
+
+        .user-greeting {
+            font-size: 0.875rem;
+        }
+
+        .user-name {
+            font-weight: 600;
+        }
+
+        .feedback-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Content */
+        .content {
+            padding: 1.5rem 1rem;
+            height: calc(100vh - 12rem);
+            overflow-y: auto;
+        }
+
+        .scrollable {
+            height: calc(100vh - 10rem);
+            padding-bottom: 6rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0.5rem;
+        }
+
+        .category-icon {
+            width: 4rem;
+            height: 4rem;
+            background: #fed7aa;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s;
+            font-size: 1.5rem;
+        }
+
+        .category-icon:hover {
+            background: #fdba74;
+        }
+
+        .category-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        /* Food Items */
+        .food-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .food-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .food-card-content {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .food-card-image {
+            width: 6rem;
+            height: 6rem;
+            border-radius: 0.75rem;
+            background: #fed7aa;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .food-card-info {
+            flex: 1;
+        }
+
+        .food-card-title {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .food-card-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .btn-detail {
+            background: #f97316;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Form Styles */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 3rem;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0 1rem;
+            font-size: 1rem;
+            color: #1f2937;
+        }
+
+        .form-input:focus {
+            outline: none;
+            background: #e5e7eb;
+        }
+
+        /* Photo Upload */
+        .photo-upload-container {
+            width: 100%;
+            height: 12rem;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .photo-upload-btn {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .photo-upload-btn:hover {
+            border-color: #f97316;
+            background: #fef3c7;
+        }
+
+        .photo-upload-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .photo-upload-text {
+            color: #6b7280;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .photo-preview {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .photo-preview-image {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #fed7aa, #fdba74);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .photo-remove-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 2rem;
+            height: 2rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Scanner */
+        .scanner-container {
+            position: relative;
+            height: calc(100vh - 8rem);
+            background: linear-gradient(45deg, #fed7aa, #fdba74);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scanner-frame {
+            width: 16rem;
+            height: 16rem;
+            border: 4px solid white;
+            border-radius: 1rem;
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .scan-button {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            height: 3rem;
+            background: #f97316;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+        }
+
+        .btn-primary:hover {
+            background: #ea580c;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 428px;
+            background: #f97316;
+            border-radius: 1.5rem 1.5rem 0 0;
+            padding: 1rem 0;
+            z-index: 1000;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+            font-size: 1.5rem;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn-active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Popup Overlay */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-overlay.active {
+            display: flex;
+        }
+
+        .popup-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1rem;
+            max-width: 20rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        .popup-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Utility */
+        .hidden { display: none; }
+        .text-center { text-align: center; }
+
+        /* Responsive */
+        @media (max-width: 428px) {
+            .mobile-container {
+                max-width: 100%;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen bg-gradient-orange active">
+            <div class="bg-decoration bg-decoration-1"></div>
+            <div class="bg-decoration bg-decoration-2"></div>
+            <div class="bg-decoration bg-decoration-3"></div>
+            
+            <div class="pizza-icon">
+                <div class="pizza-slice">
+                    <div class="pizza-topping pizza-topping-1"></div>
+                    <div class="pizza-topping pizza-topping-2"></div>
+                    <div class="pizza-topping pizza-topping-3"></div>
+                </div>
+            </div>
+            
+            <div class="app-title">
+                <h1>TrackBite</h1>
+            </div>
+            
+            <div class="loading-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+
+        <!-- Auth Choice Screen -->
+        <div id="auth-choice-screen" class="screen bg-gradient-orange">
+            <div class="bg-decoration bg-decoration-1"></div>
+            <div class="bg-decoration bg-decoration-2"></div>
+            <div class="bg-decoration bg-decoration-3"></div>
+            
+            <div class="pizza-icon">
+                <div class="pizza-slice">
+                    <div class="pizza-topping pizza-topping-1"></div>
+                    <div class="pizza-topping pizza-topping-2"></div>
+                    <div class="pizza-topping pizza-topping-3"></div>
+                </div>
+            </div>
+            
+            <div class="app-title">
+                <h1>TrackBite</h1>
+            </div>
+            
+            <div class="auth-buttons">
+                <button class="btn-auth btn-auth-primary" onclick="showScreen('login-screen')">🔑 Login</button>
+                <button class="btn-auth btn-auth-secondary" onclick="showScreen('register-screen')">📝 Register</button>
+            </div>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen bg-gradient-orange">
+            <div class="bg-decoration bg-decoration-1"></div>
+            <div class="bg-decoration bg-decoration-2"></div>
+            <div class="bg-decoration bg-decoration-3"></div>
+            
+            <button class="back-btn" onclick="showScreen('auth-choice-screen')" style="position: absolute; top: 1rem; left: 1rem;">←</button>
+            
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20rem; background: white; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);">
+                <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+                    <div class="pizza-slice pizza-slice-small">
+                        <div class="pizza-topping pizza-topping-small-1"></div>
+                        <div class="pizza-topping pizza-topping-small-2"></div>
+                    </div>
+                </div>
+                
+                <h2 style="font-size: 1.5rem; font-weight: bold; text-align: center; color: #1f2937; margin-bottom: 0.5rem;">🔑 Login</h2>
+                <p style="text-align: center; color: #6b7280; font-size: 0.875rem; margin-bottom: 2rem;">Sign in to continue</p>
+                
+                <form onsubmit="login(event)">
+                    <div class="form-group">
+                        <label class="form-label">👤 NAME</label>
+                        <input type="text" placeholder="Jayden Ganden" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">🔒 PASSWORD</label>
+                        <input type="password" placeholder="••••••" class="form-input" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">🚀 Log In</button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button style="color: #f97316; background: none; border: none; font-size: 0.875rem; cursor: pointer;">❓ Forgot Password?</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Screen -->
+        <div id="register-screen" class="screen bg-gradient-orange">
+            <div class="bg-decoration bg-decoration-1"></div>
+            <div class="bg-decoration bg-decoration-2"></div>
+            <div class="bg-decoration bg-decoration-3"></div>
+            
+            <button class="back-btn" onclick="showScreen('auth-choice-screen')" style="position: absolute; top: 1rem; left: 1rem;">←</button>
+            
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20rem; background: white; border-radius: 1.5rem; padding: 2rem; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);">
+                <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+                    <div class="pizza-slice pizza-slice-small">
+                        <div class="pizza-topping pizza-topping-small-1"></div>
+                        <div class="pizza-topping pizza-topping-small-2"></div>
+                    </div>
+                </div>
+                
+                <h2 style="font-size: 1.5rem; font-weight: bold; text-align: center; color: #1f2937; margin-bottom: 0.5rem;">📝 Create Account</h2>
+                <p style="text-align: center; color: #6b7280; font-size: 0.875rem; margin-bottom: 2rem;">Join TrackBite today!</p>
+                
+                <form onsubmit="register(event)">
+                    <div class="form-group">
+                        <label class="form-label">👤 NAME</label>
+                        <input type="text" placeholder="Jayden Ganden" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">📧 EMAIL</label>
+                        <input type="email" placeholder="example@email.com" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">🔒 PASSWORD</label>
+                        <input type="password" placeholder="••••••" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">🎂 DATE OF BIRTH</label>
+                        <input type="date" class="form-input" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">🎉 Sign Up</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="search-bar">
+                    <input placeholder="Search food, recipe, etc" class="search-input">
+                    <span class="search-icon">🔍</span>
+                </div>
+                
+                <div class="welcome-section">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <div class="user-avatar-inner"></div>
+                        </div>
+                        <div class="user-text">
+                            <p class="user-greeting">Welcome!</p>
+                            <p class="user-name">Jayden Ganden</p>
+                        </div>
+                    </div>
+                    <button class="feedback-btn" onclick="showFeedback()">💬</button>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="section">
+                    <h3 class="section-title">📂 Category</h3>
+                    <div class="category-grid">
+                        <button class="category-item" onclick="showScreen('database-screen')">
+                            <div class="category-icon">🗃️</div>
+                            <span class="category-label">Database</span>
+                        </button>
+                        <button class="category-item" onclick="showScreen('log-screen')">
+                            <div class="category-icon">📝</div>
+                            <span class="category-label">Log</span>
+                        </button>
+                        <button class="category-item" onclick="showScreen('scan-screen')">
+                            <div class="category-icon">📷</div>
+                            <span class="category-label">Scan</span>
+                        </button>
+                        <button class="category-item" onclick="showScreen('info-screen')">
+                            <div class="category-icon">ℹ️</div>
+                            <span class="category-label">Info</span>
+                        </button>
+                        <button class="category-item" onclick="showScreen('summary-screen')">
+                            <div class="category-icon">📊</div>
+                            <span class="category-label">Summary</span>
+                        </button>
+                        <button class="category-item" onclick="showScreen('report-screen')">
+                            <div class="category-icon">📈</div>
+                            <span class="category-label">Report</span>
+                        </button>
+                        <button class="category-item" onclick="showScreen('create-program-screen')">
+                            <div class="category-icon">➕</div>
+                            <span class="category-label">Create Program</span>
+                        </button>
+                        <button class="category-item" onclick="showScreen('others-screen')">
+                            <div class="category-icon">⚙️</div>
+                            <span class="category-label">Others</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3 class="section-title">🔥 Popular Food</h3>
+                    <div style="display: flex; gap: 1rem; overflow-x: auto;">
+                        <div style="min-width: 7rem; height: 7rem; background: #fed7aa; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🍜</div>
+                        <div style="min-width: 7rem; height: 7rem; background: #fed7aa; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🍕</div>
+                        <div style="min-width: 7rem; height: 7rem; background: #fed7aa; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🍔</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Screen -->
+        <div id="database-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">🗃️ Database</h1>
+                </div>
+                <div class="search-bar">
+                    <input placeholder="Search food..." class="search-input">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+            
+            <div class="content scrollable">
+                <div class="food-list">
+                    <div class="food-card">
+                        <div class="food-card-content">
+                            <div class="food-card-image">🍜</div>
+                            <div class="food-card-info">
+                                <h3 class="food-card-title">Nasi Goreng</h3>
+                                <p class="food-card-description">Nasi goreng adalah makanan berupa nasi yang digoreng serta dicampur dengan bumbu dan bahan lainnya seperti telur, sayuran, daging, atau seafood.</p>
+                                <button class="btn-detail" onclick="showPopup('ℹ️', '#3b82f6', 'Food Details', 'Nasi Goreng - 450 kcal per serving', [{ text: 'Close', action: hidePopup }])">👁️ See Detail</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="food-card">
+                        <div class="food-card-content">
+                            <div class="food-card-image">🍖</div>
+                            <div class="food-card-info">
+                                <h3 class="food-card-title">Sate</h3>
+                                <p class="food-card-description">Sate adalah makanan yang terbuat dari daging yang dipotong kecil-kecil, ditusuk dengan tusukan bambu, kemudian dipanggang menggunakan bara api arang.</p>
+                                <button class="btn-detail" onclick="showPopup('ℹ️', '#3b82f6', 'Food Details', 'Sate - 320 kcal per serving', [{ text: 'Close', action: hidePopup }])">👁️ See Detail</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="food-card">
+                        <div class="food-card-content">
+                            <div class="food-card-image">🍛</div>
+                            <div class="food-card-info">
+                                <h3 class="food-card-title">Rendang</h3>
+                                <p class="food-card-description">Rendang adalah masakan daging bercita rasa pedas yang menggunakan campuran dari berbagai bumbu dan rempah-rempah yang dimasak dalam waktu lama.</p>
+                                <button class="btn-detail" onclick="showPopup('ℹ️', '#3b82f6', 'Food Details', 'Rendang - 550 kcal per serving', [{ text: 'Close', action: hidePopup }])">👁️ See Detail</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Screen -->
+        <div id="log-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">📝 Log</h1>
+                </div>
+            </div>
+            
+            <div class="content scrollable">
+                <form id="log-form">
+                    <div class="form-group">
+                        <label class="form-label">🍽️ Nama Makanan</label>
+                        <input type="text" placeholder="Kwetiau Siram" class="form-input" id="food-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">📷 Foto Makanan</label>
+                        <div class="photo-upload-container">
+                            <div id="photo-upload" class="photo-upload-btn" onclick="uploadPhoto()">
+                                <div class="photo-upload-icon">📷</div>
+                                <span class="photo-upload-text">Add Photo</span>
+                            </div>
+                            <div id="photo-preview" class="photo-preview hidden">
+                                <div class="photo-preview-image">🍜</div>
+                                <button type="button" class="photo-remove-btn" onclick="removePhoto()">×</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">🕐 Jam Makan</label>
+                        <select class="form-input" required>
+                            <option value="">Pilih waktu makan</option>
+                            <option value="pagi">🌅 Pagi (Sarapan)</option>
+                            <option value="siang">☀️ Siang (Makan Siang)</option>
+                            <option value="malam">🌙 Malam (Makan Malam)</option>
+                            <option value="snack">🍪 Snack</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">⏰ Waktu Makan</label>
+                        <input type="time" class="form-input" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">💾 Save Log</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Scan Screen -->
+        <div id="scan-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">📷 Scan</h1>
+                </div>
+            </div>
+            
+            <div class="scanner-container">
+                <div class="scanner-frame">
+                    📷
+                </div>
+                <div class="scan-button">
+                    <button class="btn-primary" onclick="scanFood()">🔍 Scan Food</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Screen -->
+        <div id="info-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">ℹ️ Info</h1>
+                </div>
+            </div>
+            
+            <div class="content scrollable">
+                <h2 style="font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 1.5rem; text-align: center;">🍜 Beijing Noodles</h2>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="width: 100%; height: 12rem; background: linear-gradient(45deg, #fed7aa, #fdba74); border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 4rem;">🍜</div>
+                </div>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-bottom: 1rem;">📊 Informasi Nutrisi</h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;">
+                            <span style="color: #6b7280; font-weight: 500;">🔥 Kalori</span>
+                            <span style="color: #1f2937; font-weight: 600;">450 kcal</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;">
+                            <span style="color: #6b7280; font-weight: 500;">🥩 Protein</span>
+                            <span style="color: #1f2937; font-weight: 600;">15 gram</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;">
+                            <span style="color: #6b7280; font-weight: 500;">🍞 Karbohidrat</span>
+                            <span style="color: #1f2937; font-weight: 600;">45 gram</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;">
+                            <span style="color: #6b7280; font-weight: 500;">🧈 Lemak Total</span>
+                            <span style="color: #1f2937; font-weight: 600;">8 gram</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;">
+                            <span style="color: #6b7280; font-weight: 500;">🍊 Vitamin</span>
+                            <span style="color: #1f2937; font-weight: 600;">A, C</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                            <span style="color: #6b7280; font-weight: 500;">🌾 Serat</span>
+                            <span style="color: #1f2937; font-weight: 600;">3 gram</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border-radius: 0.75rem;">
+                        <p style="font-size: 0.875rem; color: #6b7280;">
+                            🍜 Beijing Noodles adalah hidangan mie tradisional yang kaya akan karbohidrat dan protein. Cocok untuk makan siang atau malam dengan kandungan nutrisi yang seimbang.
+                        </p>
+                    </div>
+                </div>
+                
+                <button onclick="saveToLog()" class="btn-primary">💾 Save to Log</button>
+            </div>
+        </div>
+
+        <!-- Summary Screen -->
+        <div id="summary-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">📊 Summary</h1>
+                </div>
+            </div>
+            
+            <div class="content scrollable">
+                <h2 style="font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 1.5rem;">📈 YOUR Today Summary</h2>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <p style="font-size: 0.875rem; font-weight: 500; color: #374151;">🍽️ Total kalori yang dikonsumsi</p>
+                        <span style="font-size: 1.5rem;">🍽️</span>
+                    </div>
+                    <div style="background: #f97316; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">1,250 kcal</div>
+                </div>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <p style="font-size: 0.875rem; font-weight: 500; color: #374151;">🔥 Kalori yang dibakar</p>
+                        <span style="font-size: 1.5rem;">🔥</span>
+                    </div>
+                    <div style="background: #22c55e; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">850 kcal</div>
+                </div>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <p style="font-size: 0.875rem; font-weight: 500; color: #374151;">🎯 Target kalori harian</p>
+                        <span style="font-size: 1.5rem;">🎯</span>
+                    </div>
+                    <div style="background: #ef4444; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">2,000 kcal</div>
+                </div>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <p style="font-size: 0.875rem; font-weight: 500; color: #374151;">📊 Statistik harian</p>
+                        <span style="font-size: 1.5rem;">📊</span>
+                    </div>
+                    <div style="height: 6rem; background: #f3f4f6; border-radius: 0.5rem; display: flex; align-items: end; justify-content: space-around; padding: 0.5rem;">
+                        <div style="width: 1rem; height: 2.5rem; background: #f97316; border-radius: 0.125rem 0.125rem 0 0;"></div>
+                        <div style="width: 1rem; height: 4rem; background: #f97316; border-radius: 0.125rem 0.125rem 0 0;"></div>
+                        <div style="width: 1rem; height: 2rem; background: #f97316; border-radius: 0.125rem 0.125rem 0 0;"></div>
+                        <div style="width: 1rem; height: 3.5rem; background: #f97316; border-radius: 0.125rem 0.125rem 0 0;"></div>
+                        <div style="width: 1rem; height: 3rem; background: #f97316; border-radius: 0.125rem 0.125rem 0 0;"></div>
+                        <div style="width: 1rem; height: 1.5rem; background: #f97316; border-radius: 0.125rem 0.125rem 0 0;"></div>
+                        <div style="width: 1rem; height: 4.5rem; background: #f97316; border-radius: 0.125rem 0.125rem 0 0;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Screen -->
+        <div id="report-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">📈 Report</h1>
+                </div>
+            </div>
+            
+            <div class="content scrollable">
+                <h2 style="font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 1.5rem;">📊 Today Report Overview</h2>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-bottom: 1rem;">🎯 Achievement</h3>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 4rem; height: 4rem; background: #fbbf24; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🏆</div>
+                        <div>
+                            <h4 style="font-weight: bold; color: #1f2937;">You Reach Your GOAL!!</h4>
+                            <p style="font-size: 0.875rem; color: #6b7280;">Congratulations on meeting your daily target!</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #fef3c7; border-radius: 0.5rem; padding: 1rem;">
+                        <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">📊 Today's Breakdown:</p>
+                        <ul style="font-size: 0.875rem; color: #6b7280; margin-left: 1rem;">
+                            <li>🍞 Carbs: 58.14%</li>
+                            <li>🥩 Proteins: 23.26%</li>
+                            <li>🧈 Fats: 18.60%</li>
+                        </ul>
+                        <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">🔥 Total: 880 kcal of nutritious food!</p>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-bottom: 1rem;">📈 Weekly Progress</h3>
+                    <div style="height: 8rem; background: #f3f4f6; border-radius: 0.5rem; display: flex; align-items: end; justify-content: space-around; padding: 1rem;">
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div style="width: 1.5rem; height: 3rem; background: #22c55e; border-radius: 0.25rem; margin-bottom: 0.5rem;"></div>
+                            <span style="font-size: 0.75rem; color: #6b7280;">Mon</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div style="width: 1.5rem; height: 4rem; background: #22c55e; border-radius: 0.25rem; margin-bottom: 0.5rem;"></div>
+                            <span style="font-size: 0.75rem; color: #6b7280;">Tue</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div style="width: 1.5rem; height: 2.5rem; background: #fbbf24; border-radius: 0.25rem; margin-bottom: 0.5rem;"></div>
+                            <span style="font-size: 0.75rem; color: #6b7280;">Wed</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div style="width: 1.5rem; height: 5rem; background: #22c55e; border-radius: 0.25rem; margin-bottom: 0.5rem;"></div>
+                            <span style="font-size: 0.75rem; color: #6b7280;">Thu</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div style="width: 1.5rem; height: 3.5rem; background: #22c55e; border-radius: 0.25rem; margin-bottom: 0.5rem;"></div>
+                            <span style="font-size: 0.75rem; color: #6b7280;">Fri</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div style="width: 1.5rem; height: 2rem; background: #ef4444; border-radius: 0.25rem; margin-bottom: 0.5rem;"></div>
+                            <span style="font-size: 0.75rem; color: #6b7280;">Sat</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div style="width: 1.5rem; height: 4.5rem; background: #22c55e; border-radius: 0.25rem; margin-bottom: 0.5rem;"></div>
+                            <span style="font-size: 0.75rem; color: #6b7280;">Sun</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Program Screen -->
+        <div id="create-program-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">➕ Create Program</h1>
+                </div>
+            </div>
+            
+            <div class="content scrollable">
+                <h2 style="font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-bottom: 1.5rem;">🎯 Categories by goals</h2>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 4rem; height: 4rem; background: #fed7aa; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">📈</div>
+                        <div>
+                            <h3 style="font-size: 1.25rem; font-weight: bold; color: #1f2937;">Naikkan Berat Badan</h3>
+                            <p style="font-size: 0.875rem; color: #6b7280;">Program Makanan</p>
+                            <span style="background: #f97316; color: white; padding: 0.25rem 0.75rem; border-radius: 0.75rem; font-size: 0.75rem;">Tanpa Suplemen</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                            <span style="color: #f97316;">•</span>
+                            <span style="color: #374151;">🌅 Sarapan Tinggi Kalori</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                            <span style="color: #f97316;">•</span>
+                            <span style="color: #374151;">☀️ Makan Siang Padat Gizi</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="color: #f97316;">•</span>
+                            <span style="color: #374151;">🌙 Makan Malam Berprotein</span>
+                        </div>
+                    </div>
+                    
+                    <button style="width: 100%; height: 3rem; background: transparent; border: 1px solid #fed7aa; color: #f97316; border-radius: 0.75rem; font-weight: 500; cursor: pointer;">👁️ View All</button>
+                </div>
+                
+                <div style="background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 4rem; height: 4rem; background: #dbeafe; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">📉</div>
+                        <div>
+                            <h3 style="font-size: 1.25rem; font-weight: bold; color: #1f2937;">Turunkan Berat Badan</h3>
+                            <p style="font-size: 0.875rem; color: #6b7280;">Program Makanan</p>
+                            <span style="background: #06b6d4; color: white; padding: 0.25rem 0.75rem; border-radius: 0.75rem; font-size: 0.75rem;">Tanpa Suplemen</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                            <span style="color: #06b6d4;">•</span>
+                            <span style="color: #374151;">🥗 Sarapan Bergizi</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                            <span style="color: #06b6d4;">•</span>
+                            <span style="color: #374151;">⚖️ Makan Siang Seimbang</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="color: #06b6d4;">•</span>
+                            <span style="color: #374151;">🥙 Makan Malam Ringan</span>
+                        </div>
+                    </div>
+                    
+                    <button style="width: 100%; height: 3rem; background: transparent; border: 1px solid #a5f3fc; color: #06b6d4; border-radius: 0.75rem; font-weight: 500; cursor: pointer;">👁️ View All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Others Screen -->
+        <div id="others-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">⚙️ Others</h1>
+                </div>
+            </div>
+            
+            <div style="padding: 2rem 1rem; height: calc(100vh - 10rem); display: flex; align-items: center; justify-content: center;">
+                <div style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%;">
+                    <button onclick="showPopup('💬', '#f97316', 'Consultation', 'Feature coming soon!', [{ text: 'OK', action: hidePopup }])" style="width: 100%; background: white; border: none; border-radius: 1rem; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); text-align: left;">
+                        <div style="width: 4rem; height: 4rem; background: #fed7aa; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">💬</div>
+                        <div>
+                            <h3 style="font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem;">Consultation</h3>
+                            <p style="font-size: 0.875rem; color: #6b7280;">Konsultasi dengan Food Tech tentang program makanan</p>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showPopup('👥', '#3b82f6', 'Community', 'Feature coming soon!', [{ text: 'OK', action: hidePopup }])" style="width: 100%; background: white; border: none; border-radius: 1rem; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); text-align: left;">
+                        <div style="width: 4rem; height: 4rem; background: #dbeafe; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem;">👥</div>
+                        <div>
+                            <h3 style="font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem;">Community</h3>
+                            <p style="font-size: 0.875rem; color: #6b7280;">Bergabung dengan komunitas TrackBite</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="profile-screen" class="screen bg-gray">
+            <div class="header">
+                <div class="header-content">
+                    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+                    <h1 class="screen-title">👤 Profile</h1>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 1.5rem;">👋 Hello, Jayden Ganden</h2>
+                    <div style="width: 6rem; height: 6rem; background: #f97316; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 5rem; height: 5rem; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #f97316; font-size: 2rem;">👤</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <button onclick="showPopup('⚙️', '#f97316', 'User Settings', 'Feature coming soon!', [{ text: 'OK', action: hidePopup }])" style="background: white; border: none; border-radius: 1rem; padding: 1rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); text-align: left; width: 100%;">
+                        <div style="width: 3rem; height: 3rem; background: #fed7aa; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #f97316; font-size: 1.5rem;">⚙️</div>
+                        <div>
+                            <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem;">User Setting</h3>
+                            <p style="font-size: 0.875rem; color: #6b7280;">Change your name and password</p>
+                        </div>
+                    </button>
+                    
+                    <button onclick="showLogoutConfirm()" style="background: white; border: none; border-radius: 1rem; padding: 1rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); text-align: left; width: 100%;">
+                        <div style="width: 3rem; height: 3rem; background: #fecaca; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.5rem;">🚪</div>
+                        <div>
+                            <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem;">Log Out</h3>
+                            <p style="font-size: 0.875rem; color: #6b7280;">Sign out of your account</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-items">
+                <button class="nav-btn" onclick="showScreen('home-screen')">🏠</button>
+                <button class="nav-btn" onclick="showPopup('🔍', '#3b82f6', 'Search', 'Feature coming soon!', [{ text: 'OK', action: hidePopup }])">🔍</button>
+                <button class="nav-btn" onclick="showScreen('profile-screen')">👤</button>
+            </div>
+        </div>
+
+        <!-- Popup Overlays -->
+        <div id="popup-overlay" class="popup-overlay">
+            <div class="popup-content">
+                <div id="popup-icon" style="width: 4rem; height: 4rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem;"></div>
+                <h3 id="popup-title" class="popup-title"></h3>
+                <p id="popup-message" style="color: #6b7280; margin-bottom: 1.5rem;"></p>
+                <div id="popup-buttons" class="popup-buttons"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'loading-screen';
+        let hasPhoto = false;
+
+        // Screen Navigation
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+            updateActiveNav();
+        }
+
+        // Auto-navigate from loading to auth choice
+        setTimeout(() => {
+            if (currentScreen === 'loading-screen') {
+                showScreen('auth-choice-screen');
+            }
+        }, 3000);
+
+        // Authentication
+        function login(event) {
+            event.preventDefault();
+            showScreen('home-screen');
+        }
+
+        function register(event) {
+            event.preventDefault();
+            showScreen('home-screen');
+        }
+
+        // Photo Upload
+        function uploadPhoto() {
+            document.getElementById('photo-upload').classList.add('hidden');
+            document.getElementById('photo-preview').classList.remove('hidden');
+            hasPhoto = true;
+        }
+
+        function removePhoto() {
+            document.getElementById('photo-upload').classList.remove('hidden');
+            document.getElementById('photo-preview').classList.add('hidden');
+            hasPhoto = false;
+        }
+
+        // Log Form
+        document.getElementById('log-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const foodName = document.getElementById('food-name').value;
+            
+            if (foodName) {
+                showPopup('✅', '#22c55e', 'Success!', 'Log berhasil di save', [
+                    { text: 'Continue', action: () => { hidePopup(); showScreen('home-screen'); } }
+                ]);
+            } else {
+                showPopup('❌', '#ef4444', 'Oops!', 'Terjadi kesalahan saat menyimpan', [
+                    { text: 'Try Again', action: hidePopup }
+                ]);
+            }
+        });
+
+        // Scan Food
+        function scanFood() {
+            showPopup('📷', '#f97316', 'Scanning...', 'Analyzing your food...', []);
+            setTimeout(() => {
+                hidePopup();
+                showScreen('info-screen');
+            }, 2000);
+        }
+
+        // Save to Log
+        function saveToLog() {
+            showPopup('✅', '#22c55e', 'Success!', 'Food info saved to log', [
+                { text: 'Continue', action: () => { hidePopup(); showScreen('home-screen'); } }
+            ]);
+        }
+
+        // Popup System
+        function showPopup(icon, iconColor, title, message, buttons) {
+            const popup = document.getElementById('popup-overlay');
+            const popupIcon = document.getElementById('popup-icon');
+            const popupTitle = document.getElementById('popup-title');
+            const popupMessage = document.getElementById('popup-message');
+            const popupButtons = document.getElementById('popup-buttons');
+
+            popupIcon.innerHTML = icon;
+            popupIcon.style.background = iconColor;
+            popupIcon.style.color = 'white';
+            popupTitle.innerHTML = title;
+            popupTitle.style.color = iconColor;
+            popupMessage.innerHTML = message;
+
+            popupButtons.innerHTML = '';
+            buttons.forEach(button => {
+                const btn = document.createElement('button');
+                btn.innerHTML = button.text;
+                btn.className = button.text === 'Continue' || button.text === 'Yes' ? 'btn-primary' : 'btn-secondary';
+                btn.onclick = button.action;
+                popupButtons.appendChild(btn);
+            });
+
+            popup.classList.add('active');
+        }
+
+        function hidePopup() {
+            document.getElementById('popup-overlay').classList.remove('active');
+        }
+
+        // Logout Confirmation
+        function showLogoutConfirm() {
+            showPopup('❓', '#f97316', 'Are you sure want to Log out?', '', [
+                { text: 'No', action: hidePopup },
+                { text: 'Yes', action: () => { hidePopup(); showScreen('loading-screen'); } }
+            ]);
+        }
+
+        // Feedback
+        function showFeedback() {
+            showPopup('💬', '#f97316', 'Feedback', 'Thank you for your feedback! Feature coming soon.', [
+                { text: 'OK', action: hidePopup }
+            ]);
+        }
+
+        // Update active nav button
+        function updateActiveNav() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('nav-btn-active');
+            });
+            
+            if (currentScreen === 'home-screen') {
+                document.querySelectorAll('.nav-btn')[0].classList.add('nav-btn-active');
+            } else if (currentScreen === 'profile-screen') {
+                document.querySelectorAll('.nav-btn')[2].classList.add('nav-btn-active');
+            }
+        }
+    </script>
+</body>
+</html>
